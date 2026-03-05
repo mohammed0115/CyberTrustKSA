@@ -18,6 +18,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include((urlconf_module, "webui"), namespace="webui")),
     path("api/", include("cybertrust.apps.accounts.urls")),
+    path("api/", include("cybertrust.apps.ai_engine.urls")),
+    path("api/", include("cybertrust.apps.controls.urls")),
 ]
 
 if settings.DEBUG:

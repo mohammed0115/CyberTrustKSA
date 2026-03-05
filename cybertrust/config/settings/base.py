@@ -150,13 +150,33 @@ LOGGING = {
         "default": {
             "format": "[{asctime}] {levelname} {name} {message}",
             "style": "{",
+        },
+        "verbose": {
+            "format": "[{asctime}] {levelname} {name} {funcName} {message}",
+            "style": "{",
         }
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "default",
-        }
+        },
+        "ai_engine_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "ai_engine.log"),
+            "maxBytes": 10485760,  # 10MB
+            "backupCount": 5,
+            "formatter": "verbose",
+            "level": LOG_LEVEL,
+        },
+        "chatbot_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "chatbot.log"),
+            "maxBytes": 5242880,  # 5MB
+            "backupCount": 3,
+            "formatter": "verbose",
+            "level": LOG_LEVEL,
+        },
     },
     "loggers": {
         "django": {"handlers": ["console"], "level": LOG_LEVEL},
@@ -166,6 +186,21 @@ LOGGING = {
             "propagate": False,
         },
         "api": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
+        "ai_engine": {
+            "handlers": ["console", "ai_engine_file"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "chatbot": {
+            "handlers": ["console", "chatbot_file"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "analysis": {
+            "handlers": ["console", "ai_engine_file"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
     },
 }
 

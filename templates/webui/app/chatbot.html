@@ -1,0 +1,177 @@
+<!-- Virtual CISO Chatbot Interface -->
+{% extends "webui/base_app.html" %}
+{% load static %}
+
+{% block content %}
+<div class="flex flex-col h-screen max-h-[calc(100vh-100px)]">
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-teal to-cyan px-6 py-4 text-white">
+    <h1 class="text-2xl font-bold">
+      {% if is_ar %}مساعد الأمان السيبراني الافتراضي{% else %}Virtual CISO Assistant{% endif %}
+    </h1>
+    <p class="text-sm text-white/80">
+      {% if is_ar %}احصل على إجابات فورية حول ضوابط NCA والامتثال{% else %}Get instant answers about NCA controls and compliance{% endif %}
+    </p>
+  </div>
+
+  <!-- Messages Container -->
+  <div class="flex-1 overflow-y-auto bg-gray-50 p-6 space-y-4" id="chatMessages">
+    <div class="flex justify-start">
+      <div class="bg-white rounded-lg shadow p-4 max-w-md">
+        <p class="text-gray-800 text-sm">
+          {% if is_ar %}
+            مرحباً! أنا مساعد الأمان السيبراني الافتراضي. يمكنني مساعدتك في فهم ضوابط NCA والإجابة على أسئلتك حول الامتثال. كيف يمكنني مساعدتك؟
+          {% else %}
+            Hi! I'm your Virtual CISO Assistant. I can help you understand NCA controls and answer compliance questions. How can I help?
+          {% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="border-t bg-white p-6 shadow-lg">
+    <form id="chatForm" class="flex gap-4 items-end">
+      {% csrf_token %}
+      
+      <div class="flex-1">
+        <textarea 
+          id="messageInput"
+          class="w-full border rounded-lg px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-teal"
+          placeholder="{% if is_ar %}اكتب سؤالك هنا...{% else %}Type your question here...{% endif %}"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <!-- Language Toggle -->
+        <select id="language" class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal">
+          <option value="en">English</option>
+          <option value="ar">العربية</option>
+        </select>
+
+        <!-- Send Button -->
+        <button 
+          type="submit" 
+          class="bg-teal hover:bg-teal/90 text-white px-6 py-2 rounded-lg font-medium transition"
+        >
+          {% if is_ar %}إرسال{% else %}Send{% endif %}
+        </button>
+      </div>
+    </form>
+
+    <!-- Clear Button -->
+    <div class="mt-2 flex justify-end">
+      <button 
+        id="clearBtn" 
+        class="text-red-600 hover:text-red-700 text-sm underline"
+      >
+        {% if is_ar %}مسح المحادثة{% else %}Clear Chat{% endif %}
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const chatForm = document.getElementById('chatForm');
+const chatMessages = document.getElementById('chatMessages');
+const messageInput = document.getElementById('messageInput');
+const languageSelect = document.getElementById('language');
+const clearBtn = document.getElementById('clearBtn');
+
+// Send message
+chatForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const message = messageInput.value.trim();
+  const language = languageSelect.value;
+  
+  if (!message) return;
+  
+  // Add user message to UI
+  addMessage(message, 'user');
+  messageInput.value = '';
+  
+  try {
+    const response = await fetch('{% url "ai_engine:chatbot_message" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ message, language })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      addMessage(data.response, 'assistant');
+    } else {
+      addMessage(`Error: ${data.error}`, 'error');
+    }
+  } catch (error) {
+    addMessage(`Error: ${error.message}`, 'error');
+  }
+});
+
+// Clear chat
+clearBtn.addEventListener('click', async () => {
+  if (!confirm('Clear all messages?')) return;
+  
+  try {
+    await fetch('{% url "ai_engine:chatbot_clear" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    });
+    chatMessages.innerHTML = '';
+    location.reload();
+  } catch (error) {
+    console.error('Error clearing chat:', error);
+  }
+});
+
+function addMessage(content, sender) {
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+  
+  const bgColor = sender === 'user' ? 'bg-teal text-white' : sender === 'error' ? 'bg-red-100 text-red-800' : 'bg-white';
+  const maxWidth = sender === 'user' ? 'max-w-lg' : 'max-w-md';
+  
+  msgDiv.innerHTML = `
+    <div class="${bgColor} rounded-lg shadow p-4 ${maxWidth}">
+      <p class="text-sm break-words">${escapeHtml(content)}</p>
+    </div>
+  `;
+  
+  chatMessages.appendChild(msgDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// Load chat history on load
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const response = await fetch('{% url "ai_engine:chatbot_history" %}');
+    const data = await response.json();
+    if (data.success) {
+      data.messages.forEach(msg => {
+        addMessage(msg.content, msg.role);
+      });
+    }
+  } catch (error) {
+    console.error('Error loading history:', error);
+  }
+});
+</script>
+{% endblock %}

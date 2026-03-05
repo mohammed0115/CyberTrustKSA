@@ -1,0 +1,232 @@
+<!-- Vendor Assessment Questionnaire -->
+{% extends "webui/base_app.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+  <div class="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg p-6 text-white mb-8">
+    <h1 class="text-3xl font-bold mb-2">
+      {% if is_ar %}تقييم الامتثال الأولي{% else %}Initial Compliance Assessment{% endif %}
+    </h1>
+    <p class="text-sm opacity-90">
+      {% if is_ar %}أجب على الأسئلة التالية لتحديد مستوى المة لديك{% else %}Answer the following questions to determine your compliance level{% endif %}
+    </p>
+    <div class="mt-4 w-full bg-white/30 rounded-full h-2">
+      <div class="bg-white rounded-full h-2 transition-all" id="progressBar" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <form id="assessmentForm" class="space-y-6">
+    {% csrf_token %}
+    
+    <div id="questionsContainer"></div>
+    
+    <div class="flex gap-4 justify-center mt-8">
+      <button 
+        type="button" 
+        id="prevBtn" 
+        class="px-6 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50"
+        disabled
+      >
+        {% if is_ar %}السابق{% else %}Previous{% endif %}
+      </button>
+      
+      <button 
+        type="button" 
+        id="nextBtn" 
+        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      >
+        {% if is_ar %}التالي{% else %}Next{% endif %}
+      </button>
+      
+      <button 
+        type="submit" 
+        id="submitBtn" 
+        class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hidden"
+      >
+        {% if is_ar %}إرسال{% else %}Submit{% endif %}
+      </button>
+    </div>
+  </form>
+
+  <!-- Results -->
+  <div id="results" class="hidden mt-8 bg-white rounded-lg shadow-lg p-6">
+    <h2 class="text-2xl font-bold mb-4">{% if is_ar %}النتائج{% else %}Results{% endif %}</h2>
+    
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="bg-blue-50 rounded-lg p-4">
+        <p class="text-sm text-gray-600">{% if is_ar %}نوع البائع{% else %}Vendor Type{% endif %}</p>
+        <p class="text-2xl font-bold text-blue-600" id="vendorType"></p>
+      </div>
+      
+      <div class="bg-red-50 rounded-lg p-4">
+        <p class="text-sm text-gray-600">{% if is_ar %}درجة المخاطرة{% else %}Risk Score{% endif %}</p>
+        <p class="text-2xl font-bold text-red-600" id="riskScore"></p>
+      </div>
+    </div>
+    
+    <div class="bg-gray-50 rounded-lg p-4 mb-6">
+      <h3 class="font-bold mb-4">{% if is_ar %}الضوابط المطلوبة{% else %}Required Controls{% endif %}</h3>
+      <ul class="space-y-2" id="controlsList"></ul>
+    </div>
+    
+    <a 
+      href="{% url 'webui:controls_list' slug=org.slug %}" 
+      class="inline-block px-6 py-2 bg-teal text-white rounded-lg hover:bg-teal/90"
+    >
+      {% if is_ar %}ابدأ الامتثال{% else %}Start Compliance{% endif %}
+    </a>
+  </div>
+</div>
+
+<script>
+const assessmentForm = document.getElementById('assessmentForm');
+const questionsContainer = document.getElementById('questionsContainer');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const submitBtn = document.getElementById('submitBtn');
+const progressBar = document.getElementById('progressBar');
+const resultsDiv = document.getElementById('results');
+
+let questions = [];
+let currentPage = 0;
+let questionsPerPage = 1;
+let responses = {};
+
+// Load questions
+async function loadQuestions() {
+  try {
+    const slug = "{{ org.slug }}";
+    const response = await fetch(`/api/assessment/${slug}/questions/`);
+    const data = await response.json();
+    
+    if (data.success) {
+      questions = data.questions;
+      renderQuestion();
+    }
+  } catch (error) {
+    console.error('Error loading questions:', error);
+  }
+}
+
+function renderQuestion() {
+  const question = questions[currentPage];
+  if (!question) return;
+  
+  const questionText = document.documentElement.lang === 'ar' ? question.question_ar : question.question_en;
+  const isLastQuestion = currentPage === questions.length - 1;
+  
+  questionsContainer.innerHTML = `
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h3 class="font-bold text-lg mb-4">${questionText}</h3>
+      
+      <div class="space-y-2">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="q_${question.id}" value="yes" class="radio" required>
+          <span>{% if is_ar %}نعم{% else %}Yes{% endif %}</span>
+        </label>
+        
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="q_${question.id}" value="no" class="radio" required>
+          <span>{% if is_ar %}لا{% else %}No{% endif %}</span>
+        </label>
+      </div>
+    </div>
+  `;
+  
+  // Update buttons
+  prevBtn.disabled = currentPage === 0;
+  nextBtn.textContent = isLastQuestion ? '{% if is_ar %}إنهاء{% else %}Finish{% endif %}' : '{% if is_ar %}التالي{% else %}Next{% endif %}';
+  submitBtn.classList.toggle('hidden', !isLastQuestion);
+  nextBtn.classList.toggle('hidden', isLastQuestion);
+  
+  // Update progress
+  updateProgress();
+  
+  // Restore previous answer
+  const prevAnswer = responses[`q_${question.id}`];
+  if (prevAnswer) {
+    document.querySelector(`input[name="q_${question.id}"][value="${prevAnswer}"]`).checked = true;
+  }
+}
+
+function updateProgress() {
+  const percent = ((currentPage + 1) / questions.length) * 100;
+  progressBar.style.width = percent + '%';
+}
+
+prevBtn.addEventListener('click', () => {
+  if (currentPage > 0) {
+    saveCurrentResponse();
+    currentPage--;
+    renderQuestion();
+  }
+});
+
+nextBtn.addEventListener('click', () => {
+  if (currentPage < questions.length - 1) {
+    saveCurrentResponse();
+    currentPage++;
+    renderQuestion();
+  }
+});
+
+assessmentForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  saveCurrentResponse();
+  
+  try {
+    const slug = "{{ org.slug }}";
+    const response = await fetch(`/api/assessment/${slug}/submit/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ responses })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      showResults(data);
+    }
+  } catch (error) {
+    console.error('Error submitting assessment:', error);
+  }
+});
+
+function saveCurrentResponse() {
+  const question = questions[currentPage];
+  const checked = document.querySelector(`input[name="q_${question.id}"]:checked`);
+  if (checked) {
+    responses[`q_${question.id}`] = checked.value;
+  }
+}
+
+function showResults(data) {
+  questionsContainer.innerHTML = '';
+  nextBtn.classList.add('hidden');
+  prevBtn.classList.add('hidden');
+  submitBtn.classList.add('hidden');
+  
+  document.getElementById('vendorType').textContent = data.vendor_type === 'GENERAL' ? '{% if is_ar %}خدمات عامة{% else %}General Services{% endif %}' : '{% if is_ar %}خدمات عالية المخاطر{% else %}High-Risk Services{% endif %}';
+  document.getElementById('riskScore').textContent = data.risk_score + '%';
+  
+  const controlsList = document.getElementById('controlsList');
+  controlsList.innerHTML = data.required_controls.map(c => `
+    <li class="flex justify-between items-center p-2 bg-white rounded border">
+      <span><strong>${c.code}</strong> - ${c.title}</span>
+      <span class="text-xs px-2 py-1 rounded ${
+        c.risk_level === 'HIGH' ? 'bg-red-100 text-red-800' : 
+        c.risk_level === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' : 
+        'bg-green-100 text-green-800'
+      }">${c.risk_level}</span>
+    </li>
+  `).join('');
+  
+  resultsDiv.classList.remove('hidden');
+}
+
+// Initialize
+loadQuestions();
+</script>
+{% endblock %}

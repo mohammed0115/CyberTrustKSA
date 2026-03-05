@@ -1,0 +1,203 @@
+<!-- Evidence Remediation Template -->
+{% extends "webui/base_app.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-8">
+  <div class="bg-gradient-to-r from-orange-600 to-red-600 rounded-lg shadow-lg p-6 text-white mb-8">
+    <h1 class="text-3xl font-bold mb-2">
+      {% if is_ar %}خطة التصحيح{% else %}Remediation Plan{% endif %}
+    </h1>
+    <div class="flex gap-4 mt-4">
+      <div>
+        <p class="text-sm opacity-75">{% if is_ar %}الضابط{% else %}Control{% endif %}</p>
+        <p class="font-bold" id="controlCode">-</p>
+      </div>
+      <div>
+        <p class="text-sm opacity-75">{% if is_ar %}النقاط المفقودة{% else %}Missing Points{% endif %}</p>
+        <p class="font-bold" id="missingCount">0</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Steps Timeline -->
+  <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <h2 class="text-2xl font-bold mb-6">
+      {% if is_ar %}خطوات التصحيح{% else %}Remediation Steps{% endif %}
+    </h2>
+    
+    <div id="stepsContainer" class="space-y-4"></div>
+    
+    <div class="mt-6 flex gap-4">
+      <button 
+        type="button" 
+        id="saveProgress" 
+        class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+      >
+        {% if is_ar %}حفظ التقدم{% else %}Save Progress{% endif %}
+      </button>
+      
+      <span id="progressPercent" class="text-right flex-1 text-2xl font-bold text-gray-600">0%</span>
+    </div>
+  </div>
+
+  <!-- Missing Points -->
+  <div class="grid grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h3 class="text-xl font-bold mb-4">{% if is_ar %}النقاط المفقودة{% else %}Missing Points{% endif %}</h3>
+      <ul id="missingPoints" class="space-y-2"></ul>
+    </div>
+
+    <!-- Pre-built Templates -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h3 class="text-xl font-bold mb-4">{% if is_ar %}القوالب الجاهزة{% else %}Pre-built Templates{% endif %}</h3>
+      <div id="templates" class="space-y-2"></div>
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  <div class="bg-blue-50 rounded-lg shadow-lg p-6">
+    <h3 class="text-xl font-bold mb-4">{% if is_ar %}التوصيات{% else %}Recommendations{% endif %}</h3>
+    <ul id="recommendations" class="space-y-2"></ul>
+  </div>
+</div>
+
+<script>
+const controlId = "{{ control.id }}";
+const slug = "{{ org.slug }}";
+const isAr = document.documentElement.lang === 'ar';
+
+async function loadRemediationPlan() {
+  try {
+    const lang = isAr ? 'ar' : 'en';
+    const response = await fetch(`/api/remediation/${controlId}/template/${slug}/?lang=${lang}`);
+    const data = await response.json();
+    
+    if (data.success) {
+      renderPlan(data.template, data.analysis_status);
+    }
+  } catch (error) {
+    console.error('Error loading remediation plan:', error);
+  }
+}
+
+function renderPlan(template, status) {
+  // Header info
+  document.getElementById('controlCode').textContent = template.control_code;
+  document.getElementById('missingCount').textContent = template.missing_points.length;
+  
+  // Render steps
+  const stepsContainer = document.getElementById('stepsContainer');
+  stepsContainer.innerHTML = template.steps.map((step, i) => `
+    <div class="flex gap-4 pb-4 border-b last:border-b-0">
+      <div class="flex-shrink-0">
+        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-orange-100">
+          <input type="checkbox" class="step-checkbox" data-step="${i}" onchange="updateProgress()">
+        </div>
+      </div>
+      <div class="flex-1">
+        <h4 class="font-bold">${step.description}</h4>
+        <p class="text-sm text-gray-600 mt-1">
+          Effort: <strong>${step.effort_hours}h</strong> | 
+          Owner: <strong>${step.accepted_by}</strong>
+        </p>
+      </div>
+    </div>
+  `).join('');
+  
+  // Render missing points
+  const missingPoints = document.getElementById('missingPoints');
+  missingPoints.innerHTML = template.missing_points.map(point => `
+    <li class="flex items-start gap-2">
+      <span class="text-red-600 font-bold mt-1">•</span>
+      <span class="text-gray-700">${point}</span>
+    </li>
+  `).join('');
+  
+  // Render recommendations
+  const recommendations = document.getElementById('recommendations');
+  if (template.steps) {
+    recommendations.innerHTML = template.steps.map((step, i) => `
+      <li class="flex items-start gap-2">
+        <span class="font-bold text-blue-600">✓</span>
+        <span>${step.description}</span>
+      </li>
+    `).join('');
+  }
+  
+  // Load templates
+  loadTemplates();
+  
+  // Save progress button
+  document.getElementById('saveProgress').addEventListener('click', saveProgress);
+}
+
+async function loadTemplates() {
+  try {
+    const lang = isAr ? 'ar' : 'en';
+    const response = await fetch(`/api/remediation/${controlId}/templates/?lang=${lang}`);
+    const data = await response.json();
+    
+    if (data.success && data.templates.length > 0) {
+      const templatesDiv = document.getElementById('templates');
+      templatesDiv.innerHTML = data.templates.map(template => `
+        <div class="bg-gray-50 p-3 rounded border">
+          <h4 class="font-bold text-sm">${template.name}</h4>
+          <p class="text-xs text-gray-600 mt-1">${template.description}</p>
+          <button 
+            class="text-blue-600 hover:text-blue-700 text-xs mt-2 underline"
+            onclick="showTemplate('${btoa(JSON.stringify(template))}')
+          "
+          >
+            {% if is_ar %}عرض{% else %}View{% endif %}
+          </button>
+        </div>
+      `).join('');
+    }
+  } catch (error) {
+    console.error('Error loading templates:', error);
+  }
+}
+
+function updateProgress() {
+  const checkboxes = document.querySelectorAll('.step-checkbox');
+  const checked = document.querySelectorAll('.step-checkbox:checked').length;
+  const percent = Math.round((checked / checkboxes.length) * 100);
+  document.getElementById('progressPercent').textContent = percent + '%';
+}
+
+async function saveProgress() {
+  const checkboxes = document.querySelectorAll('.step-checkbox');
+  const completed = document.querySelectorAll('.step-checkbox:checked').length;
+  
+  try {
+    const response = await fetch(`/api/remediation/${controlId}/track/${slug}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({
+        completed_steps: completed,
+        total_steps: checkboxes.length,
+        notes: `Updated at ${new Date().toLocaleString()}`
+      })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      alert('Progress saved! ' + data.progress.progress_percent + '% complete');
+    }
+  } catch (error) {
+    console.error('Error saving progress:', error);
+  }
+}
+
+function showTemplate(encoded) {
+  const template = JSON.parse(atob(encoded));
+  alert('Template: ' + template.name + '\n\n' + template.content);
+}
+
+// Load on page load
+document.addEventListener('DOMContentLoaded', loadRemediationPlan);
+</script>
+{% endblock %}

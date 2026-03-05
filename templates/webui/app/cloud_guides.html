@@ -1,0 +1,177 @@
+<!-- Cloud Integration Guide Template -->
+{% extends "webui/base_app.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2">
+      {% if is_ar %}أدلة التكامل السحابي{% else %}Cloud Integration Guides{% endif %}
+    </h1>
+    <p class="text-gray-600">
+      {% if is_ar %}اختر مزودك السحابي للحصول على إرشادات الإعداد الخاصة بـ NCA{% else %}Select your cloud provider for NCA-compliant setup guides{% endif %}
+    </p>
+  </div>
+
+  <!-- Provider Selection -->
+  <div class="grid grid-cols-3 gap-4 mb-8">
+    <button 
+      class="provider-btn bg-white hover:shadow-lg border-2 p-6 rounded-lg text-center transition" 
+      data-provider="aws"
+    >
+      <div class="text-4xl mb-2">☁️</div>
+      <h3 class="font-bold">AWS</h3>
+      <p class="text-sm text-gray-600">Amazon Web Services</p>
+    </button>
+    
+    <button 
+      class="provider-btn bg-white hover:shadow-lg border-2 p-6 rounded-lg text-center transition" 
+      data-provider="azure"
+    >
+      <div class="text-4xl mb-2">☁️</div>
+      <h3 class="font-bold">Azure</h3>
+      <p class="text-sm text-gray-600">Microsoft Azure</p>
+    </button>
+    
+    <button 
+      class="provider-btn bg-white hover:shadow-lg border-2 p-6 rounded-lg text-center transition" 
+      data-provider="alibaba"
+    >
+      <div class="text-4xl mb-2">☁️</div>
+      <h3 class="font-bold">Alibaba</h3>
+      <p class="text-sm text-gray-600">Alibaba Cloud</p>
+    </button>
+  </div>
+
+  <!-- Guide Container -->
+  <div id="guideContainer" class="space-y-6"></div>
+
+  <!-- Checklist -->
+  <div id="checklistContainer" class="hidden">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h2 class="text-2xl font-bold mb-6">
+        {% if is_ar %}قائمة التحقق من التكامل{% else %}Integration Checklist{% endif %}
+      </h2>
+      <div id="checklistItems" class="space-y-3"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const providerBtns = document.querySelectorAll('.provider-btn');
+const guideContainer = document.getElementById('guideContainer');
+const checklistContainer = document.getElementById('checklistContainer');
+
+providerBtns.forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const provider = btn.dataset.provider;
+    
+    // Update active button
+    providerBtns.forEach(b => b.classList.remove('border-blue-600', 'bg-blue-50'));
+    btn.classList.add('border-blue-600', 'bg-blue-50');
+    
+    await loadGuides(provider);
+  });
+});
+
+async function loadGuides(provider) {
+  guideContainer.innerHTML = '<div class="text-center text-gray-500">{% if is_ar %}جاري التحميل...{% else %}Loading...{% endif %}</div>';
+  
+  try {
+    // Get requirements
+    const requirements = ['mfa', 'encryption', 'logging', 'vpc'];
+    const lang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
+    
+    for (const req of requirements) {
+      const response = await fetch(`/api/cloud-guides/${provider}/${req}/?lang=${lang}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        addGuideCard(data.guide);
+      }
+    }
+    
+    // Load checklist
+    loadChecklist(provider, lang);
+  } catch (error) {
+    guideContainer.innerHTML = `<div class="text-center text-red-500">Error: ${error.message}</div>`;
+  }
+}
+
+function addGuideCard(guide) {
+  const card = document.createElement('div');
+  card.className = 'bg-white rounded-lg shadow-lg p-6';
+  
+  const stepsHTML = (guide.steps || []).map(step => `
+    <li class="list-decimal ml-5 mb-2">${
+      typeof step === 'string' ? step : step.description || JSON.stringify(step)
+    }</li>
+  `).join('');
+  
+  const snippetsHTML = (guide.code_snippets || []).map((snippet, i) => `
+    <div class="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm overflow-x-auto mb-4">
+      <pre>${escapeHtml(typeof snippet === 'string' ? snippet : snippet.content || JSON.stringify(snippet))}</pre>
+    </div>
+  `).join('');
+  
+  card.innerHTML = `
+    <div class="mb-4">
+      <h3 class="text-xl font-bold mb-2">${guide.title || guide.name || 'Guide'}</h3>
+      <p class="text-gray-600 text-sm">${guide.description || ''}</p>
+    </div>
+    
+    ${guide.steps ? `
+      <div class="mb-4">
+        <h4 class="font-bold mb-2">Steps:</h4>
+        <ol>${stepsHTML}</ol>
+      </div>
+    ` : ''}
+    
+    ${snippetsHTML ? `
+      <div class="mb-4">
+        <h4 class="font-bold mb-2">Configuration:</h4>
+        ${snippetsHTML}
+      </div>
+    ` : ''}
+  `;
+  
+  guideContainer.appendChild(card);
+}
+
+async function loadChecklist(provider, lang) {
+  try {
+    const response = await fetch(`/api/cloud-guides/${provider}/checklist/?lang=${lang}`);
+    const data = response.json();
+    
+    if (data.success) {
+      const checklistItems = document.getElementById('checklistItems');
+      checklistItems.innerHTML = data.checklist.items.map((item, i) => `
+        <div class="flex items-start gap-3 p-3 bg-gray-50 rounded">
+          <input type="checkbox" id="item_${i}" class="mt-1">
+          <label for="item_${i}" class="flex-1">
+            <div class="font-bold">${item.requirement}</div>
+            <div class="text-sm text-gray-600">${item.description}</div>
+            <div class="text-xs text-gray-500 mt-1">Est. ${item.estimated_hours}h</div>
+          </label>
+          <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">${item.status}</span>
+        </div>
+      `).join('');
+      
+      checklistContainer.classList.remove('hidden');
+    }
+  } catch (error) {
+    console.error('Error loading checklist:', error);
+  }
+}
+
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+</script>
+{% endblock %}
