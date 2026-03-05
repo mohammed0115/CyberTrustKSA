@@ -1,0 +1,62 @@
+{% extends "webui/base_public.html" %}
+{% block content %}
+<section class="mx-auto max-w-6xl px-4 py-12">
+  <div class="grid lg:grid-cols-2 gap-10 items-center">
+    <div class="hidden lg:block">
+      <div class="rounded-3xl border border-white/10 bg-card/40 p-8 glow-teal">
+        <div class="text-sm text-white/60">{% if is_ar %}ابدأ بسرعة{% else %}Start fast{% endif %}</div>
+        <div class="mt-2 text-2xl font-semibold">
+          {% if is_ar %}أنشئ حسابك وابدأ إعداد المنظمة خلال دقائق{% else %}Create your account and setup your org in minutes{% endif %}
+        </div>
+        <div class="mt-4 text-white/70">
+          {% if is_ar %}نسخة MVP جاهزة للاختبار مع الشركات خلال أيام.{% else %}MVP ready for pilot testing fast.{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-3xl border border-white/10 bg-card/40 p-8">
+      <h1 class="text-2xl font-semibold">{% if is_ar %}إنشاء حساب{% else %}Create account{% endif %}</h1>
+      <p class="mt-2 text-white/70 text-sm">{% if is_ar %}الخطوة 1 من 3{% else %}Step 1 of 3{% endif %}</p>
+
+      <form method="post" class="mt-6 space-y-4">
+        {% csrf_token %}
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-white/70">{% if is_ar %}الاسم الأول{% else %}First name{% endif %}</label>
+            <input name="first_name" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal" />
+          </div>
+          <div>
+            <label class="text-sm text-white/70">{% if is_ar %}اسم العائلة{% else %}Last name{% endif %}</label>
+            <input name="last_name" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal" />
+          </div>
+        </div>
+
+        <div>
+          <label class="text-sm text-white/70">{% if is_ar %}البريد الإلكتروني{% else %}Work email{% endif %}</label>
+          <input name="email" type="email" required class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal" placeholder="name@company.com">
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm text-white/70">{% if is_ar %}كلمة المرور{% else %}Password{% endif %}</label>
+            <input name="password1" type="password" required class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal" placeholder="••••••••">
+          </div>
+          <div>
+            <label class="text-sm text-white/70">{% if is_ar %}تأكيد كلمة المرور{% else %}Confirm{% endif %}</label>
+            <input name="password2" type="password" required class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal" placeholder="••••••••">
+          </div>
+        </div>
+
+        <button class="w-full rounded-2xl bg-teal hover:bg-teal/90 px-6 py-3 font-medium">
+          {% if is_ar %}التالي: إعداد المنظمة{% else %}Next: Org setup{% endif %}
+        </button>
+
+        <div class="text-sm text-white/70">
+          {% if is_ar %}لديك حساب؟{% else %}Already have an account?{% endif %}
+          <a class="text-cyan-200 hover:underline" href="{% url 'webui:login' %}">{% if is_ar %}تسجيل الدخول{% else %}Login{% endif %}</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

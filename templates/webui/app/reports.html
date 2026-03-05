@@ -1,0 +1,99 @@
+{% extends "webui/base_app.html" %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold">{% if is_ar %}التقارير{% else %}Reports{% endif %}</h1>
+    <p class="mt-1 text-white/70 text-sm">{% if is_ar %}تقارير امتثال جاهزة للإدارة{% else %}Executive-ready compliance reports{% endif %}</p>
+  </div>
+  {% if can_manage %}
+    <form method="post" action="{% url 'webui:reports_list' slug=org.slug %}">
+      {% csrf_token %}
+      <button class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal hover:bg-teal/90 text-sm font-medium {% if is_ar %}flex-row-reverse{% endif %}">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 5v14"/>
+          <path d="M5 12h14"/>
+        </svg>
+        <span>{% if is_ar %}إنشاء تقرير جديد{% else %}Generate new report{% endif %}</span>
+      </button>
+    </form>
+  {% endif %}
+</div>
+
+<div class="mt-6 rounded-3xl border border-white/10 bg-card/40 overflow-hidden">
+  <div class="px-5 py-4 border-b border-white/10 flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+    <div class="text-sm text-white/70">{% if is_ar %}قائمة التقارير{% else %}Reports list{% endif %}</div>
+    <div class="flex gap-2">
+      <input class="w-64 max-w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-2 outline-none focus:border-teal text-sm" placeholder="{% if is_ar %}ابحث...{% else %}Search...{% endif %}">
+      <select class="rounded-2xl bg-white/5 border border-white/10 px-4 py-2 outline-none focus:border-teal text-sm">
+        <option>{% if is_ar %}الكل{% else %}All{% endif %}</option>
+        <option>compliance</option>
+        <option>risk</option>
+        <option>summary</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <thead class="bg-white/5 text-white/70">
+        <tr>
+          <th class="px-5 py-3 text-start">{% if is_ar %}الاسم{% else %}Name{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}النوع{% else %}Type{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}التاريخ{% else %}Date{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}الحالة{% else %}Status{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}الحجم{% else %}Size{% endif %}</th>
+          <th class="px-5 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for report in reports %}
+          <tr class="border-t border-white/5 hover:bg-white/5">
+            <td class="px-5 py-4 font-medium">{{ report.name }}</td>
+            <td class="px-5 py-4 text-white/70">
+              {% if is_ar %}
+                {% if report.report_type == 'COMPLIANCE' %}امتثال{% elif report.report_type == 'RISK' %}مخاطر{% else %}ملخص{% endif %}
+              {% else %}
+                {{ report.get_report_type_display }}
+              {% endif %}
+            </td>
+            <td class="px-5 py-4 text-white/70">{{ report.created_at|date:"Y-m-d" }}</td>
+            <td class="px-5 py-4">
+              <span class="px-2 py-1 rounded-full text-xs border
+                {% if report.status == 'READY' %}border-emerald-400/40 bg-emerald-400/10 text-emerald-300
+                {% elif report.status == 'FAILED' %}border-danger/40 bg-danger/10 text-danger
+                {% else %}border-warn/40 bg-warn/10 text-warn{% endif %}">
+                {% if is_ar %}
+                  {% if report.status == 'READY' %}جاهز{% elif report.status == 'FAILED' %}فشل{% else %}قيد الإنشاء{% endif %}
+                {% else %}
+                  {{ report.get_status_display }}
+                {% endif %}
+              </span>
+            </td>
+            <td class="px-5 py-4 text-white/70">{{ report.size_display }}</td>
+            <td class="px-5 py-4 text-end">
+              {% if report.status == 'READY' and report.file %}
+                <a href="{% url 'webui:report_download' slug=org.slug report_id=report.id %}" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-teal/20 border border-teal/40 text-cyan-200 hover:bg-teal/30 text-xs {% if is_ar %}flex-row-reverse{% endif %}">
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 4v12"/>
+                    <path d="M7 11l5 5 5-5"/>
+                    <path d="M5 20h14"/>
+                  </svg>
+                  <span>{% if is_ar %}تحميل{% else %}Download{% endif %}</span>
+                </a>
+              {% else %}
+                <span class="text-xs text-white/40">{% if is_ar %}غير متاح{% else %}Not ready{% endif %}</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr class="border-t border-white/5">
+            <td colspan="6" class="px-5 py-8 text-center text-white/50">
+              {% if is_ar %}لا توجد تقارير بعد{% else %}No reports yet{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

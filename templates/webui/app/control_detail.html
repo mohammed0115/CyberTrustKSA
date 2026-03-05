@@ -1,0 +1,148 @@
+{% extends "webui/base_app.html" %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div>
+    <div class="text-sm text-white/60">{{ control.code }}</div>
+    <h1 class="text-2xl font-semibold">{% if is_ar %}{{ control.title_ar }}{% else %}{{ control.title_en }}{% endif %}</h1>
+    <p class="mt-1 text-white/70 text-sm">{% if is_ar %}{{ control.description_ar }}{% else %}{{ control.description_en }}{% endif %}</p>
+  </div>
+  <a href="{% url 'webui:evidence_upload' slug=org.slug %}?control={{ control.id }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal hover:bg-teal/90 text-sm font-medium {% if is_ar %}flex-row-reverse{% endif %}">
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M12 16V4"/>
+      <path d="M7 9l5-5 5 5"/>
+      <path d="M5 20h14"/>
+    </svg>
+    <span>{% if is_ar %}رفع دليل لهذا الضابط{% else %}Upload evidence{% endif %}</span>
+  </a>
+</div>
+
+<div class="mt-6 grid lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 rounded-3xl border border-white/10 bg-card/40 p-6">
+    <div class="font-semibold">{% if is_ar %}الدليل المطلوب{% else %}Required Evidence{% endif %}</div>
+    <p class="mt-2 text-sm text-white/70">{{ control.required_evidence|default:"—" }}</p>
+  </div>
+  <div class="rounded-3xl border border-white/10 bg-card/40 p-6">
+    <div class="text-xs text-white/60">{% if is_ar %}المخاطر{% else %}Risk Level{% endif %}</div>
+    <div class="mt-2 text-xl font-semibold">{{ control.risk_level }}</div>
+  </div>
+</div>
+
+<div class="mt-6 rounded-3xl border border-white/10 bg-card/40 overflow-hidden">
+  <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+    <div class="font-semibold">{% if is_ar %}الأدلة المرتبطة{% else %}Linked Evidence{% endif %}</div>
+    <div class="text-xs text-white/60">{{ links|length }} {% if is_ar %}ملف{% else %}files{% endif %}</div>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <thead class="bg-white/5 text-white/70">
+        <tr>
+          <th class="px-5 py-3 text-start">{% if is_ar %}الملف{% else %}File{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}المستخدم{% else %}User{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}الحالة{% else %}Status{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}التاريخ{% else %}Date{% endif %}</th>
+          {% if can_manage %}
+            <th class="px-5 py-3"></th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for link in links %}
+          <tr class="border-t border-white/5 hover:bg-white/5">
+            <td class="px-5 py-4 font-medium">{{ link.evidence.filename }}</td>
+            <td class="px-5 py-4 text-white/70">{{ link.evidence.uploaded_by.email }}</td>
+            <td class="px-5 py-4">{{ link.evidence.status }}</td>
+            <td class="px-5 py-4 text-white/60">{{ link.evidence.created_at|date:"Y-m-d" }}</td>
+            {% if can_manage %}
+              <td class="px-5 py-4 text-end">
+                <form method="post" action="{% url 'webui:evidence_analyze' slug=org.slug evidence_id=link.evidence.id control_id=control.id %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="evidence_id" value="{{ link.evidence.id }}">
+                  <button class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-teal/20 border border-teal/40 text-cyan-200 hover:bg-teal/30 text-xs {% if is_ar %}flex-row-reverse{% endif %}">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M12 3v18"/>
+                      <path d="M3 12h18"/>
+                    </svg>
+                    <span>{% if is_ar %}حلّل الآن{% else %}Analyze now{% endif %}</span>
+                  </button>
+                </form>
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr class="border-t border-white/5">
+            <td class="px-5 py-4 text-white/60" colspan="{% if can_manage %}5{% else %}4{% endif %}">{% if is_ar %}لا يوجد أدلة مرتبطة{% else %}No linked evidence{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<div class="mt-6 grid lg:grid-cols-2 gap-6">
+  {% for r in results %}
+    <div class="rounded-3xl border border-white/10 bg-card/40 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs text-white/60">{{ r.evidence.filename }}</div>
+          <div class="font-semibold">{% if is_ar %}????? AI{% else %}AI Result{% endif %}</div>
+        </div>
+        <span class="px-2 py-1 rounded-full text-xs border border-teal/40 bg-teal/10 text-cyan-200">{{ r.status }}</span>
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 gap-4">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div class="text-xs text-white/60">{% if is_ar %}??????{% else %}Score{% endif %}</div>
+          <div class="mt-2 text-2xl font-semibold">{{ r.score }}%</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div class="text-xs text-white/60">{% if is_ar %}?????{% else %}Confidence{% endif %}</div>
+          <div class="mt-2 text-2xl font-semibold">{{ r.confidence }}%</div>
+        </div>
+      </div>
+
+      <div class="mt-4 text-sm text-white/70">
+        {% if is_ar %}{{ r.summary_ar }}{% else %}{{ r.summary_en }}{% endif %}
+      </div>
+
+      <div class="mt-4">
+        <div class="text-xs text-white/60">{% if is_ar %}?????? ???????{% else %}Missing Points{% endif %}</div>
+        <ul class="mt-2 text-sm text-white/70 space-y-1">
+          {% for mp in r.missing_points %}
+            <li class="flex gap-2"><span class="text-emerald-300">?</span><span>{{ mp }}</span></li>
+          {% empty %}
+            <li class="text-white/50">?</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-xs text-white/60">{% if is_ar %}????????{% else %}Recommendations{% endif %}</div>
+        <ul class="mt-2 text-sm text-white/70 space-y-1">
+          {% for rec in r.recommendations %}
+            <li class="flex gap-2"><span class="text-cyan-300">?</span><span>{{ rec }}</span></li>
+          {% empty %}
+            <li class="text-white/50">?</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-xs text-white/60">{% if is_ar %}??????????{% else %}Citations{% endif %}</div>
+        <ul class="mt-2 text-sm text-white/70 space-y-1">
+          {% for c in r.citations %}
+            <li class="flex gap-2"><span class="text-white/40">?</span><span>{{ c.quote }}{% if c.page %} (p{{ c.page }}){% endif %}</span></li>
+          {% empty %}
+            <li class="text-white/50">?</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% empty %}
+    <div class="rounded-3xl border border-white/10 bg-card/40 p-6 text-white/60">
+      {% if is_ar %}?? ???? ????? ???{% else %}No analysis results yet{% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

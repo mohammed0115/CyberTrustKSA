@@ -1,0 +1,67 @@
+{% extends "webui/base_app.html" %}
+{% block content %}
+<div class="flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-semibold">{% if is_ar %}إعداد المنظمة{% else %}Organization Setup{% endif %}</h1>
+    <p class="mt-1 text-white/70 text-sm">{% if is_ar %}الخطوة 2 من 3 — معلومات المنظمة{% else %}Step 2 of 3 — Organization details{% endif %}</p>
+  </div>
+</div>
+
+<div class="mt-6 grid lg:grid-cols-2 gap-6">
+  <div class="rounded-3xl border border-white/10 bg-card/40 p-6">
+    <h2 class="font-semibold">{% if is_ar %}إنشاء منظمة{% else %}Create organization{% endif %}</h2>
+    <form method="post" class="mt-5 space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="text-sm text-white/70">{% if is_ar %}اسم المنظمة{% else %}Organization name{% endif %}</label>
+        <input name="org_name" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal" placeholder="{% if is_ar %}مثال: شركة التقنية{% else %}e.g. ACME Tech{% endif %}">
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm text-white/70">{% if is_ar %}المجال{% else %}Industry{% endif %}</label>
+          <select name="industry" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal">
+            <option value="">{% if is_ar %}اختر{% else %}Select{% endif %}</option>
+            <option>FinTech</option><option>Healthcare</option><option>Government</option><option>SaaS</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm text-white/70">{% if is_ar %}حجم الشركة{% else %}Company size{% endif %}</label>
+          <select name="size" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal">
+            <option value="">{% if is_ar %}اختر{% else %}Select{% endif %}</option>
+            <option>{% if is_ar %}صغيرة{% else %}Small{% endif %}</option>
+            <option>{% if is_ar %}متوسطة{% else %}Medium{% endif %}</option>
+            <option>{% if is_ar %}كبيرة{% else %}Enterprise{% endif %}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <a href="{% url 'webui:register' %}" class="px-5 py-3 rounded-2xl border border-white/10 bg-card/40 hover:bg-card/70">{% if is_ar %}رجوع{% else %}Back{% endif %}</a>
+        <button class="flex-1 px-5 py-3 rounded-2xl bg-teal hover:bg-teal/90 font-medium">{% if is_ar %}التالي: دعوة الفريق{% else %}Next: Invite team{% endif %}</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="rounded-3xl border border-white/10 bg-card/40 p-6">
+    <h2 class="font-semibold">{% if is_ar %}لماذا هذا مهم؟{% else %}Why this matters{% endif %}</h2>
+    <p class="mt-3 text-white/70 text-sm leading-relaxed">
+      {% if is_ar %}
+        ربط الأدلة بالمنظمة يضمن تتبع الامتثال، ويُظهر التقدم عبر ضوابط NCA ويوفر تقارير جاهزة.
+      {% else %}
+        Organization context helps track compliance progress across NCA controls and produces executive-ready reports.
+      {% endif %}
+    </p>
+
+    <div class="mt-5 space-y-3">
+      <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+        <div class="text-xs text-white/60">{% if is_ar %}النتيجة{% else %}Outcome{% endif %}</div>
+        <div class="mt-1 font-semibold">{% if is_ar %}لوحة تحكم + تقرير امتثال{% else %}Dashboard + Compliance report{% endif %}</div>
+      </div>
+      <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+        <div class="text-xs text-white/60">AI</div>
+        <div class="mt-1 font-semibold">{% if is_ar %}تحليل الأدلة وتحديد الفجوات{% else %}Analyze evidence & highlight gaps{% endif %}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "webui/base_public.html" %}
+{% block content %}
+<section class="mx-auto max-w-6xl px-4 py-12 lg:py-16">
+  <div class="grid lg:grid-cols-2 gap-10 items-center">
+    <div>
+      <div class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-card/40 px-4 py-2 text-xs text-white/70">
+        <span class="h-2 w-2 rounded-full bg-glow"></span>
+        {% if is_ar %}متوافق مع ضوابط NCA • تحليل أدلة بالذكاء الاصطناعي{% else %}NCA-aligned • AI Evidence Analysis{% endif %}
+      </div>
+
+      <h1 class="mt-5 text-3xl lg:text-5xl font-semibold leading-tight">
+        {% if is_ar %}
+          امتثال NCA بذكاء… وتقارير في ساعات بدل أيام
+        {% else %}
+          NCA Compliance — in hours, not days
+        {% endif %}
+      </h1>
+
+      <p class="mt-4 text-white/70 leading-relaxed">
+        {% if is_ar %}
+          ارفع الأدلة، دع الذكاء الاصطناعي يحللها ويربطها بضوابط NCA، ثم احصل على درجة امتثال وتوصيات وتقرير جاهز.
+        {% else %}
+          Upload evidence, let AI analyze and map it to NCA controls, then get a compliance score, recommendations, and a report.
+        {% endif %}
+      </p>
+
+      <div class="mt-7 flex flex-col sm:flex-row gap-3">
+        <a href="{% url 'webui:register' %}" class="px-6 py-3 rounded-2xl bg-teal hover:bg-teal/90 font-medium">
+          {% if is_ar %}ابدأ الآن{% else %}Get Started{% endif %}
+        </a>
+        <a href="{% url 'webui:login' %}" class="px-6 py-3 rounded-2xl border border-white/10 bg-card/40 hover:bg-card/70 font-medium">
+          {% if is_ar %}شاهد تجربة التحليل{% else %}See AI Demo{% endif %}
+        </a>
+      </div>
+
+      <div class="mt-8 grid sm:grid-cols-3 gap-4 text-sm">
+        <div class="rounded-2xl border border-white/10 bg-card/40 p-4">
+          <div class="text-white/60">{% if is_ar %}رفع الأدلة{% else %}Upload Evidence{% endif %}</div>
+          <div class="font-semibold mt-1">{% if is_ar %}PDF / DOCX / صور{% else %}PDF / DOCX / Images{% endif %}</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-card/40 p-4">
+          <div class="text-white/60">{% if is_ar %}تحليل AI{% else %}AI Analysis{% endif %}</div>
+          <div class="font-semibold mt-1">{% if is_ar %}مطابقة ضوابط NCA{% else %}NCA Mapping{% endif %}</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-card/40 p-4">
+          <div class="text-white/60">{% if is_ar %}تقارير{% else %}Reports{% endif %}</div>
+          <div class="font-semibold mt-1">{% if is_ar %}PDF جاهز للإدارة{% else %}CEO-ready PDF{% endif %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-3xl border border-white/10 bg-card/40 p-6 glow-teal">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold">{% if is_ar %}نموذج لوحة التحكم{% else %}Dashboard Preview{% endif %}</div>
+        <span class="text-xs text-white/60">{% if is_ar %}تجريبي{% else %}Demo{% endif %}</span>
+      </div>
+      <div class="mt-5 grid grid-cols-2 gap-4">
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+          <div class="text-xs text-white/60">{% if is_ar %}درجة الامتثال{% else %}Compliance{% endif %}</div>
+          <div class="mt-2 text-2xl font-semibold">78%</div>
+          <div class="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
+            <div class="h-full w-[78%] bg-glow"></div>
+          </div>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-4">
+          <div class="text-xs text-white/60">{% if is_ar %}الضوابط{% else %}Controls{% endif %}</div>
+          <div class="mt-2 text-2xl font-semibold">64/114</div>
+          <div class="mt-1 text-xs text-white/60">{% if is_ar %}مكتمل{% else %}Completed{% endif %}</div>
+        </div>
+        <div class="rounded-2xl bg-white/5 border border-white/10 p-4 col-span-2">
+          <div class="text-xs text-white/60">{% if is_ar %}آخر تحليل{% else %}Latest Analysis{% endif %}</div>
+          <div class="mt-2 flex items-center justify-between">
+            <div class="font-medium">policy_access.pdf</div>
+            <span class="text-xs px-2 py-1 rounded-full bg-teal/20 border border-teal/40 text-cyan-200">AI</span>
+          </div>
+          <div class="mt-3 text-sm text-white/70">{% if is_ar %}تم اكتشاف ثغرات بسيطة وتوصيات جاهزة.{% else %}Minor gaps found with clear recommendations.{% endif %}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="border-t border-white/5 bg-[#0a0f1e]/60">
+  <div class="mx-auto max-w-6xl px-4 py-14 lg:py-20 text-center">
+    <h2 class="text-2xl lg:text-3xl font-semibold">
+      {% if is_ar %}امتثال على مستوى المؤسسات{% else %}Enterprise-grade compliance{% endif %}
+    </h2>
+    <p class="mt-3 text-white/60">
+      {% if is_ar %}مصمم للمؤسسات التي تحتاج إلى امتثال قوي مع معايير الهيئة الوطنية{% else %}Built for organizations that need strong, NCA-aligned compliance{% endif %}
+    </p>
+
+    <div class="mt-10 grid md:grid-cols-3 gap-6 text-start">
+      <div class="rounded-3xl border border-white/10 bg-card/40 p-6 relative">
+        <div class="absolute top-5 right-5 h-11 w-11 rounded-2xl bg-cyan-500/15 border border-cyan-400/30 grid place-items-center text-cyan-200">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 3l1.8 3.9L18 9l-4.2 2.1L12 15l-1.8-3.9L6 9l4.2-2.1L12 3z"/>
+          </svg>
+        </div>
+        <div class="text-center">
+          <div class="text-lg font-semibold">{% if is_ar %}تحليل بالذكاء الاصطناعي{% else %}AI Analysis{% endif %}</div>
+          <p class="mt-2 text-sm text-white/60">
+            {% if is_ar %}تحليل ذكي للأدلة وتسجيل المخاطر بقوة الذكاء الاصطناعي المتقدم.{% else %}Intelligent evidence analysis with advanced AI-driven risk detection.{% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="rounded-3xl border border-cyan-400/30 bg-white/5 p-6 shadow-lg shadow-cyan-500/10 relative">
+        <div class="absolute top-5 right-5 h-11 w-11 rounded-2xl bg-cyan-500/15 border border-cyan-400/30 grid place-items-center text-cyan-200">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="6" cy="6" r="2"/>
+            <circle cx="18" cy="6" r="2"/>
+            <circle cx="12" cy="18" r="2"/>
+            <path d="M8 7.5l3 6M16 7.5l-3 6"/>
+          </svg>
+        </div>
+        <div class="text-center">
+          <div class="text-lg font-semibold">{% if is_ar %}مراقبة في الوقت الفعلي{% else %}Real-time Monitoring{% endif %}</div>
+          <p class="mt-2 text-sm text-white/60">
+            {% if is_ar %}تقييم مستمر لوضعك الأمني مع تنبيهات وتحديثات فورية.{% else %}Continuous posture evaluation with instant alerts and updates.{% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="rounded-3xl border border-white/10 bg-card/40 p-6 relative">
+        <div class="absolute top-5 right-5 h-11 w-11 rounded-2xl bg-cyan-500/15 border border-cyan-400/30 grid place-items-center text-cyan-200">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M12 3l7 4v6c0 5-3.5 8-7 8s-7-3-7-8V7l7-4z"/>
+          </svg>
+        </div>
+        <div class="text-center">
+          <div class="text-lg font-semibold">{% if is_ar %}ضوابط الهيئة الوطنية{% else %}NCA Controls{% endif %}</div>
+          <p class="mt-2 text-sm text-white/60">
+            {% if is_ar %}توافق كامل مع ضوابط وأطر الهيئة الوطنية للأمن السيبراني.{% else %}Full alignment with NCA cybersecurity controls and frameworks.{% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="border-t border-white/5">
+  <div class="mx-auto max-w-6xl px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/60">
+    <div>© 2026 {% if is_ar %}سيبرترست السعودية{% else %}CyberTrust KSA{% endif %}. {% if is_ar %}جميع الحقوق محفوظة{% else %}All rights reserved{% endif %}.</div>
+    <div class="flex items-center gap-4">
+      <a href="#" class="hover:text-white">{% if is_ar %}الخصوصية{% else %}Privacy{% endif %}</a>
+      <a href="#" class="hover:text-white">{% if is_ar %}الشروط{% else %}Terms{% endif %}</a>
+      <a href="#" class="hover:text-white">{% if is_ar %}اتصل بنا{% else %}Contact{% endif %}</a>
+    </div>
+  </div>
+</footer>
+{% endblock %}

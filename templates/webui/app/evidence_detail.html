@@ -1,0 +1,179 @@
+{% extends "webui/base_app.html" %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold">{% if is_ar %}تفاصيل الدليل{% else %}Evidence Detail{% endif %}</h1>
+    <p class="mt-1 text-white/70 text-sm">{{ evidence.filename }} • {{ evidence.created_at|date:"Y-m-d" }}</p>
+  </div>
+  {% if can_manage %}
+    <a href="{% url 'webui:evidence_upload' slug=org.slug %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal hover:bg-teal/90 text-sm font-medium {% if is_ar %}flex-row-reverse{% endif %}">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 16V4"/>
+        <path d="M7 9l5-5 5 5"/>
+        <path d="M5 20h14"/>
+      </svg>
+      <span>{% if is_ar %}رفع دليل جديد{% else %}Upload Evidence{% endif %}</span>
+    </a>
+  {% endif %}
+</div>
+
+<div class="mt-6 grid lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 rounded-3xl border border-white/10 bg-card/40 p-6" x-data="{
+      status: '{{ evidence.status }}',
+      linked: {{ total_controls }},
+      analyzed: {{ analyzed_controls }},
+      progress: 0,
+      message: '',
+      async poll() {
+        const res = await fetch('{% url 'webui:evidence_status' slug=org.slug evidence_id=evidence.id %}');
+        if (!res.ok) return;
+        const data = await res.json();
+        this.status = data.status;
+        this.linked = data.linked_controls;
+        this.analyzed = data.analyzed_controls;
+        this.progress = data.progress || 0;
+        this.message = data.message || '';
+      }
+    }" x-init="poll(); setInterval(() => poll(), 3000)">
+    <div class="flex items-center justify-between">
+      <div class="font-semibold">{% if is_ar %}?? ??? ???????{% else %}Analysis Pipeline{% endif %}</div>
+      <span class="text-xs px-2 py-1 rounded-full bg-teal/20 border border-teal/40 text-cyan-200" x-text="status"></span>
+    </div>
+
+    <div class="mt-5 space-y-3">
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-xl bg-emerald-400/20 border border-emerald-400/40 grid place-items-center text-emerald-300">?</div>
+          <div class="text-sm font-medium">{% if is_ar %}??? ?????{% else %}Upload{% endif %}</div>
+        </div>
+        <div class="text-xs text-white/60">{% if is_ar %}??{% else %}Done{% endif %}</div>
+      </div>
+
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-xl border border-white/10 grid place-items-center"
+               :class="status === 'EXTRACTING' || status === 'PROCESSING' || status === 'EXTRACTED' || status === 'ANALYZING' || status === 'ANALYZED' ? 'bg-cyan-400/20 text-cyan-200' : 'bg-white/5 text-white/60'">?</div>
+          <div class="text-sm font-medium">{% if is_ar %}??????? ????{% else %}Extract{% endif %}</div>
+        </div>
+        <div class="text-xs text-white/60" x-text="status === 'EXTRACTING' || status === 'PROCESSING' ? '{% if is_ar %}????{% else %}Running{% endif %}' : ((status === 'EXTRACTED' || status === 'ANALYZING' || status === 'ANALYZED') ? '{% if is_ar %}??{% else %}Done{% endif %}' : '{% if is_ar %}????{% else %}Queued{% endif %}')"></div>
+      </div>
+
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-xl border border-white/10 grid place-items-center"
+               :class="(status === 'ANALYZING' || status === 'ANALYZED' || analyzed > 0) ? 'bg-emerald-400/20 text-emerald-300' : 'bg-white/5 text-white/60'">AI</div>
+          <div class="text-sm font-medium">{% if is_ar %}????? ???????{% else %}Analyze{% endif %}</div>
+        </div>
+        <div class="text-xs text-white/60" x-text="analyzed + '/' + linked"></div>
+      </div>
+
+      <div class="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-xl border border-white/10 grid place-items-center"
+               :class="status === 'ANALYZED' ? 'bg-emerald-400/20 text-emerald-300' : 'bg-white/5 text-white/60'">?</div>
+          <div class="text-sm font-medium">{% if is_ar %}???????{% else %}Report{% endif %}</div>
+        </div>
+        <div class="text-xs text-white/60" x-text="status === 'ANALYZED' ? '{% if is_ar %}????{% else %}Ready{% endif %}' : '{% if is_ar %}??? ????????{% else %}Waiting{% endif %}'"></div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <div class="h-2 rounded-full bg-white/10 overflow-hidden">
+        <div class="h-full bg-info/70 transition-all" :style="`width: ${progress}%`"></div>
+      </div>
+      <div class="mt-2 text-xs text-white/60" x-text="message"></div>
+      <div class="mt-3 text-xs text-white/50">{% if is_ar %}سجل مختصر{% else %}Short logs{% endif %}</div>
+      <div class="mt-2 text-xs text-white/70" x-text="message || '...'"></div>
+    </div>
+  </div>
+
+  <div class="lg:col-span-2 rounded-3xl border border-white/10 bg-card/40 p-6">
+    <div class="text-xs text-white/60">{% if is_ar %}????? ???? ????????{% else %}Extracted Text Preview{% endif %}</div>
+    <div class="mt-3 text-sm text-white/70 whitespace-pre-line">
+      {% if extracted_excerpt %}
+        {{ extracted_excerpt }}
+      {% else %}
+        {% if is_ar %}?? ???? ?? ?????? ???{% else %}No extracted text yet{% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="rounded-3xl border border-white/10 bg-card/40 p-6">
+    <div class="text-xs text-white/60">{% if is_ar %}??????? ????????{% else %}Linked Controls{% endif %}</div>
+    <div class="mt-3 space-y-2 text-sm">
+      {% for link in links %}
+        <div class="flex items-center justify-between gap-3">
+          <div class="text-white/80">{{ link.control.code }}</div>
+          {% if can_manage %}
+            <form method="post" action="{% url 'webui:evidence_analyze' slug=org.slug evidence_id=evidence.id control_id=link.control.id %}">
+              {% csrf_token %}
+              <button class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-teal/20 border border-teal/40 text-cyan-200 hover:bg-teal/30 text-xs {% if is_ar %}flex-row-reverse{% endif %}">
+                <span>{% if is_ar %}???? ????{% else %}Analyze{% endif %}</span>
+              </button>
+            </form>
+          {% else %}
+            <div class="text-xs text-white/50">{% if is_ar %}?? ?????{% else %}Linked{% endif %}</div>
+          {% endif %}
+        </div>
+      {% empty %}
+        <div class="text-white/60">{% if is_ar %}?? ???? ????? ??????{% else %}No linked controls{% endif %}</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="mt-6 grid lg:grid-cols-2 gap-6">
+  {% for r in results %}
+    <div class="rounded-3xl border border-white/10 bg-card/40 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs text-white/60">{{ r.control.code }}</div>
+          <div class="font-semibold">{% if is_ar %}{{ r.control.title_ar }}{% else %}{{ r.control.title_en }}{% endif %}</div>
+        </div>
+        <span class="px-2 py-1 rounded-full text-xs border border-teal/40 bg-teal/10 text-cyan-200">{{ r.status }}</span>
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 gap-4">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div class="text-xs text-white/60">{% if is_ar %}الدرجة{% else %}Score{% endif %}</div>
+          <div class="mt-2 text-2xl font-semibold">{{ r.score }}%</div>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div class="text-xs text-white/60">{% if is_ar %}الثقة{% else %}Confidence{% endif %}</div>
+          <div class="mt-2 text-2xl font-semibold">{{ r.confidence }}%</div>
+        </div>
+      </div>
+
+      <div class="mt-4 text-sm text-white/70">
+        {% if is_ar %}{{ r.summary_ar }}{% else %}{{ r.summary_en }}{% endif %}
+      </div>
+
+      <div class="mt-4">
+        <div class="text-xs text-white/60">{% if is_ar %}النقاط الناقصة{% else %}Missing Points{% endif %}</div>
+        <ul class="mt-2 text-sm text-white/70 space-y-1">
+          {% for mp in r.missing_points %}
+            <li class="flex gap-2"><span class="text-emerald-300">•</span><span>{{ mp }}</span></li>
+          {% empty %}
+            <li class="text-white/50">—</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-xs text-white/60">{% if is_ar %}التوصيات{% else %}Recommendations{% endif %}</div>
+        <ul class="mt-2 text-sm text-white/70 space-y-1">
+          {% for rec in r.recommendations %}
+            <li class="flex gap-2"><span class="text-cyan-300">•</span><span>{{ rec }}</span></li>
+          {% empty %}
+            <li class="text-white/50">—</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% empty %}
+    <div class="rounded-3xl border border-white/10 bg-card/40 p-6 text-white/60">
+      {% if is_ar %}لا توجد نتائج بعد{% else %}No analysis results yet{% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

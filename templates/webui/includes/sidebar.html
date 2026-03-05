@@ -1,0 +1,51 @@
+<div class="w-72 hidden lg:flex flex-col border-r border-white/5 bg-[#0a0f1e]/70 backdrop-blur">
+  <div class="px-5 py-5 flex items-center gap-2">
+    <div class="h-10 w-10 rounded-2xl bg-teal/20 border border-teal/40 grid place-items-center glow-teal">
+      <svg class="h-5 w-5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 3l8 4v6c0 5-3.5 9-8 8-4.5 1-8-3-8-8V7l8-4z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="font-semibold">{{ app_name }}</div>
+      <div class="text-xs text-white/60">{% if is_ar %}لوحة الامتثال{% else %}Compliance Console{% endif %}</div>
+    </div>
+  </div>
+
+  <div class="px-5 pb-4">
+    <div class="rounded-2xl border border-white/10 bg-card/50 px-4 py-3">
+      <div class="text-xs text-white/60">{% if is_ar %}المنظمة{% else %}Organization{% endif %}</div>
+      <div class="font-medium">{{ org_name }}</div>
+      <div class="text-xs text-white/60">/{{ org_slug }}</div>
+    </div>
+  </div>
+
+  <nav class="px-3 space-y-1">
+    {% if org %}
+      {% include "webui/includes/nav_item.html" with href_name="webui:dashboard" href_slug=org.slug icon_name="dashboard" label_ar="لوحة التحكم" label_en="Dashboard" %}
+    {% else %}
+      {% include "webui/includes/nav_item.html" with href_name="webui:app_home" icon_name="dashboard" label_ar="المنظمات" label_en="Organizations" %}
+    {% endif %}
+    {% if org %}
+      {% include "webui/includes/nav_item.html" with href_name="webui:controls_list" href_slug=org.slug icon_name="controls" label_ar="الضوابط" label_en="Controls" %}
+      {% include "webui/includes/nav_item.html" with href_name="webui:evidence_list" href_slug=org.slug icon_name="evidence" label_ar="الأدلة" label_en="Evidence" %}
+      {% include "webui/includes/nav_item.html" with href_name="webui:evidence_upload" href_slug=org.slug icon_name="upload" label_ar="رفع دليل" label_en="Upload" %}
+      {% include "webui/includes/nav_item.html" with href_name="webui:reports_list" href_slug=org.slug icon_name="reports" label_ar="التقارير" label_en="Reports" %}
+    {% endif %}
+
+    {% if is_org_admin and org %}
+      <div class="mt-4 px-4 text-xs uppercase text-white/40">{% if is_ar %}الإدارة{% else %}Admin{% endif %}</div>
+      {% include "webui/includes/nav_item.html" with href_name="webui:org_settings" href_slug=org.slug icon_name="settings" label_ar="إعدادات المنظمة" label_en="Org Settings" %}
+      {% include "webui/includes/nav_item.html" with href_name="webui:members_list" href_slug=org.slug icon_name="members" label_ar="الأعضاء" label_en="Members" %}
+      {% include "webui/includes/nav_item.html" with href_name="webui:invites_list" href_slug=org.slug icon_name="invites" label_ar="الدعوات" label_en="Invites" %}
+    {% endif %}
+  </nav>
+
+  <div class="mt-auto p-5">
+    <form method="post" action="{% url 'webui:logout' %}">
+      {% csrf_token %}
+      <button class="w-full rounded-xl border border-white/10 bg-card/40 hover:bg-card/70 px-4 py-2 text-sm">
+        {% if is_ar %}تسجيل الخروج{% else %}Logout{% endif %}
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,84 @@
+{% extends "webui/base_app.html" %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold">{% if is_ar %}إعدادات المنظمة{% else %}Organization Settings{% endif %}</h1>
+    <p class="mt-1 text-white/70 text-sm">{% if is_ar %}تحديث بيانات المنظمة ونطاق العمل{% else %}Update your organization profile{% endif %}</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'webui:members_list' slug=org.slug %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-card/40 hover:bg-card/70 text-sm {% if is_ar %}flex-row-reverse{% endif %}">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M22 21v-2a4 4 0 0 0-3-3.9"/>
+        <path d="M16 3.1a4 4 0 0 1 0 7.8"/>
+      </svg>
+      <span>{% if is_ar %}الأعضاء{% else %}Members{% endif %}</span>
+    </a>
+    <a href="{% url 'webui:invites_list' slug=org.slug %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-card/40 hover:bg-card/70 text-sm {% if is_ar %}flex-row-reverse{% endif %}">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M4 4h16v16H4z"/>
+        <path d="M22 6l-10 7L2 6"/>
+      </svg>
+      <span>{% if is_ar %}الدعوات{% else %}Invites{% endif %}</span>
+    </a>
+  </div>
+</div>
+
+<div class="mt-6 grid lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 rounded-3xl border border-white/10 bg-card/40 p-6">
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="text-sm text-white/70">{% if is_ar %}اسم المنظمة{% else %}Organization name{% endif %}</label>
+        <input name="name" value="{{ org.name }}" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal">
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm text-white/70">{% if is_ar %}المجال{% else %}Industry{% endif %}</label>
+          <input name="industry" value="{{ org.industry }}" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal">
+        </div>
+        <div>
+          <label class="text-sm text-white/70">{% if is_ar %}حجم الشركة{% else %}Company size{% endif %}</label>
+          <input name="size" value="{{ org.size }}" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal">
+        </div>
+      </div>
+      <div class="flex items-center gap-3 pt-2">
+        <button class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-teal hover:bg-teal/90 font-medium {% if is_ar %}flex-row-reverse{% endif %}">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <path d="M7 21v-6h10v6"/>
+            <path d="M7 3v5h7"/>
+          </svg>
+          <span>{% if is_ar %}حفظ التغييرات{% else %}Save changes{% endif %}</span>
+        </button>
+        <span class="text-xs text-white/50">{% if is_ar %}المعرّف{% else %}Slug{% endif %}: {{ org.slug }}</span>
+      </div>
+    </form>
+  </div>
+
+  <div class="rounded-3xl border border-white/10 bg-card/40 p-6">
+    <div class="text-sm text-white/60">{% if is_ar %}معلومات سريعة{% else %}Quick info{% endif %}</div>
+    <div class="mt-3 space-y-3 text-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-white/70">{% if is_ar %}عدد الأعضاء{% else %}Members{% endif %}</span>
+        <span class="font-semibold">{{ org.memberships.count }}</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-white/70">{% if is_ar %}الدعوات المعلقة{% else %}Pending invites{% endif %}</span>
+        <span class="font-semibold">{{ org.invitations.count }}</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-white/70">{% if is_ar %}نشطة{% else %}Active{% endif %}</span>
+        <span class="font-semibold">
+          {% if org.is_active %}
+            {% if is_ar %}نعم{% else %}Yes{% endif %}
+          {% else %}
+            {% if is_ar %}لا{% else %}No{% endif %}
+          {% endif %}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

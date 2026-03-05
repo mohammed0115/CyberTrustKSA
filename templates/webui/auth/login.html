@@ -1,0 +1,44 @@
+{% extends "webui/base_public.html" %}
+{% block content %}
+<section class="mx-auto max-w-6xl px-4 py-12">
+  <div class="grid lg:grid-cols-2 gap-10 items-center">
+    <div class="hidden lg:block">
+      <div class="rounded-3xl border border-white/10 bg-card/40 p-8 glow-teal">
+        <div class="text-sm text-white/60">{% if is_ar %}الفكرة{% else %}Concept{% endif %}</div>
+        <div class="mt-2 text-2xl font-semibold">
+          {% if is_ar %}ارفع الأدلة… والذكاء الاصطناعي يحولها لتقرير امتثال{% else %}Upload evidence → AI turns it into a compliance report{% endif %}
+        </div>
+        <div class="mt-4 text-white/70">
+          {% if is_ar %}مصمم للسوق السعودي وضوابط NCA، مع تجربة Enterprise.{% else %}Built for NCA controls with enterprise UX.{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-3xl border border-white/10 bg-card/40 p-8">
+      <h1 class="text-2xl font-semibold">{% if is_ar %}تسجيل الدخول{% else %}Login{% endif %}</h1>
+      <p class="mt-2 text-white/70 text-sm">{% if is_ar %}أدخل بياناتك للوصول للوحة التحكم{% else %}Sign in to access your dashboard{% endif %}</p>
+
+      <form method="post" class="mt-6 space-y-4">
+        {% csrf_token %}
+        <div>
+          <label class="text-sm text-white/70">{% if is_ar %}البريد الإلكتروني{% else %}Email{% endif %}</label>
+          <input name="email" type="email" required class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal" placeholder="name@company.com">
+        </div>
+        <div>
+          <label class="text-sm text-white/70">{% if is_ar %}كلمة المرور{% else %}Password{% endif %}</label>
+          <input name="password" type="password" required class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal" placeholder="••••••••">
+        </div>
+
+        <button class="w-full rounded-2xl bg-teal hover:bg-teal/90 px-6 py-3 font-medium">
+          {% if is_ar %}دخول{% else %}Login{% endif %}
+        </button>
+
+        <div class="text-sm text-white/70">
+          {% if is_ar %}ليس لديك حساب؟{% else %}No account?{% endif %}
+          <a class="text-cyan-200 hover:underline" href="{% url 'webui:register' %}">{% if is_ar %}إنشاء حساب{% else %}Create one{% endif %}</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

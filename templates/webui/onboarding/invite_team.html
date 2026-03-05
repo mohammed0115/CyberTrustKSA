@@ -1,0 +1,73 @@
+{% extends "webui/base_app.html" %}
+{% block content %}
+<div class="flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-semibold">{% if is_ar %}دعوة الفريق{% else %}Invite your team{% endif %}</h1>
+    <p class="mt-1 text-white/70 text-sm">{% if is_ar %}الخطوة 3 من 3 — أضف أعضاء فريقك{% else %}Step 3 of 3 — Add team members{% endif %}</p>
+  </div>
+  <a href="{% url 'webui:dashboard' slug=org.slug %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-card/40 hover:bg-card/70 text-sm {% if is_ar %}flex-row-reverse{% endif %}">
+    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M5 12h14"/>
+      <path d="M13 5l7 7-7 7"/>
+    </svg>
+    <span>{% if is_ar %}تخطي{% else %}Skip{% endif %}</span>
+  </a>
+</div>
+
+<div class="mt-6 rounded-3xl border border-white/10 bg-card/40 p-6">
+  <form method="post">
+    {% csrf_token %}
+    <div class="grid sm:grid-cols-3 gap-4">
+      <div class="sm:col-span-2">
+        <label class="text-sm text-white/70">{% if is_ar %}البريد الإلكتروني{% else %}Email{% endif %}</label>
+        <input name="email" type="email" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal" placeholder="member@company.com">
+      </div>
+      <div>
+        <label class="text-sm text-white/70">{% if is_ar %}الدور{% else %}Role{% endif %}</label>
+        <select name="role" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal">
+          <option value="ADMIN">Admin</option>
+          <option value="SECURITY_OFFICER">Security Officer</option>
+          <option value="AUDITOR">Auditor</option>
+          <option value="VIEWER">Viewer</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-3">
+      <button type="button" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl border border-white/10 bg-card/40 hover:bg-card/70 {% if is_ar %}flex-row-reverse{% endif %}">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 5v14"/>
+          <path d="M5 12h14"/>
+        </svg>
+        <span>{% if is_ar %}إضافة عضو{% else %}Add member{% endif %}</span>
+      </button>
+      <button class="ml-auto inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-teal hover:bg-teal/90 font-medium {% if is_ar %}flex-row-reverse{% endif %}">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M9 12l2 2 4-4"/>
+          <path d="M12 3l7 4v6c0 5-3.5 8-7 8s-7-3-7-8V7l7-4z"/>
+        </svg>
+        <span>{% if is_ar %}إنهاء والانتقال للتطبيق{% else %}Finish & go to app{% endif %}</span>
+      </button>
+    </div>
+  </form>
+
+  <div class="mt-6 border-t border-white/10 pt-6">
+    <div class="text-sm font-semibold">{% if is_ar %}ملاحظة{% else %}Note{% endif %}</div>
+    <p class="mt-2 text-sm text-white/70">
+      {% if is_ar %}
+        في النسخة التجريبية سيتم تسجيل إرسال الدعوات فقط. لاحقاً سنرسل بريد دعوة حقيقي مع رابط قبول.
+      {% else %}
+        In demo, invites are simulated. Later you will send real email invites with accept links.
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+{% if invite_link %}
+  <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div class="text-sm text-white/70">{% if is_ar %}رابط قبول الدعوة (للاختبار):{% else %}Invite link (for testing):{% endif %}</div>
+    <a class="mt-2 block break-all text-accent hover:underline" href="{{ invite_link }}">{{ invite_link }}</a>
+  </div>
+{% endif %}
+
+{% endblock %}

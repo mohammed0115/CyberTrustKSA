@@ -1,0 +1,38 @@
+
+{% extends "webui/base_public.html" %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4">
+  <div class="w-full max-w-md rounded-3xl border border-white/10 bg-card/50 p-8 shadow-soft">
+    <h1 class="text-2xl font-semibold">
+      {% if is_ar %}قبول الدعوة{% else %}Accept invitation{% endif %}
+    </h1>
+    <p class="mt-2 text-white/70 text-sm">
+      {% if is_ar %}
+        تمت دعوتك للانضمام إلى <span class="text-white font-semibold">{{ invite.organization.name }}</span>.
+      {% else %}
+        You have been invited to join <span class="text-white font-semibold">{{ invite.organization.name }}</span>.
+      {% endif %}
+    </p>
+
+    <form method="post" class="mt-6 space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="text-sm text-white/70">{% if is_ar %}كلمة المرور{% else %}Password{% endif %}</label>
+        <input type="password" name="password1" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal">
+      </div>
+      <div>
+        <label class="text-sm text-white/70">{% if is_ar %}تأكيد كلمة المرور{% else %}Confirm password{% endif %}</label>
+        <input type="password" name="password2" class="mt-2 w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-teal">
+      </div>
+
+      <button class="w-full mt-2 px-4 py-3 rounded-2xl bg-teal text-white hover:bg-teal-700 transition">
+        {% if is_ar %}تفعيل الحساب والدخول{% else %}Activate & Sign in{% endif %}
+      </button>
+    </form>
+
+    <div class="mt-4 text-xs text-white/50">
+      {% if is_ar %}ستنتهي صلاحية الدعوة في: {{ invite.expires_at }}{% else %}Invite expires at: {{ invite.expires_at }}{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

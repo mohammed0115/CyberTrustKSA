@@ -1,0 +1,104 @@
+{% extends "webui/base_app.html" %}
+{% block content %}
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-semibold">{% if is_ar %}ضوابط NCA{% else %}NCA Controls{% endif %}</h1>
+    <p class="mt-1 text-white/70 text-sm">{% if is_ar %}إدارة الضوابط وتتبع الأدلة ودرجات AI{% else %}Manage controls, evidence, and AI score{% endif %}</p>
+  </div>
+  <div class="flex gap-3">
+    {% if can_manage %}
+      <a href="{% url 'webui:evidence_upload' slug=org.slug %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal hover:bg-teal/90 text-sm font-medium {% if is_ar %}flex-row-reverse{% endif %}">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 16V4"/>
+          <path d="M7 9l5-5 5 5"/>
+          <path d="M5 20h14"/>
+        </svg>
+        <span>{% if is_ar %}رفع دليل{% else %}Upload Evidence{% endif %}</span>
+      </a>
+    {% endif %}
+    <button class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 bg-card/40 hover:bg-card/70 text-sm {% if is_ar %}flex-row-reverse{% endif %}">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 4v12"/>
+        <path d="M7 9l5-5 5 5"/>
+        <path d="M5 20h14"/>
+      </svg>
+      <span>{% if is_ar %}تصدير{% else %}Export{% endif %}</span>
+    </button>
+  </div>
+</div>
+
+<div class="mt-6 rounded-3xl border border-white/10 bg-card/40 overflow-hidden">
+  <div class="px-5 py-4 border-b border-white/10 flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+    <div class="text-sm text-white/70">{% if is_ar %}البحث والتصفية{% else %}Search & Filter{% endif %}</div>
+    <div class="flex gap-2">
+      <input class="w-64 max-w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-2 outline-none focus:border-teal text-sm" placeholder="{% if is_ar %}ابحث...{% else %}Search...{% endif %}">
+      <select class="rounded-2xl bg-white/5 border border-white/10 px-4 py-2 outline-none focus:border-teal text-sm">
+        <option>{% if is_ar %}الكل{% else %}All{% endif %}</option>
+        <option>High</option><option>Medium</option><option>Low</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm">
+      <thead class="bg-white/5 text-white/70">
+        <tr>
+          <th class="px-5 py-3 text-start">{% if is_ar %}الكود{% else %}Code{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}العنوان{% else %}Title{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}الفئة{% else %}Category{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}المخاطر{% else %}Risk{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}الحالة{% else %}Evidence{% endif %}</th>
+          <th class="px-5 py-3 text-start">{% if is_ar %}درجة AI{% else %}AI Score{% endif %}</th>
+          <th class="px-5 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in controls %}
+          {% with c=item.control %}
+            <tr class="border-t border-white/5 hover:bg-white/5">
+              <td class="px-5 py-4 font-mono text-cyan-200">{{ c.code }}</td>
+              <td class="px-5 py-4 font-medium">{% if is_ar %}{{ c.title_ar }}{% else %}{{ c.title_en }}{% endif %}</td>
+              <td class="px-5 py-4 text-white/70">{% if is_ar %}{{ c.category.name_ar }}{% else %}{{ c.category.name_en }}{% endif %}</td>
+              <td class="px-5 py-4">
+                <span class="px-2 py-1 rounded-full text-xs border
+                  {% if c.risk_level == 'HIGH' %}border-danger/40 bg-danger/10 text-danger
+                  {% elif c.risk_level == 'MEDIUM' %}border-warn/40 bg-warn/10 text-warn
+                  {% else %}border-emerald-400/40 bg-emerald-400/10 text-emerald-300{% endif %}">
+                  {% if c.risk_level == 'HIGH' %}{% if is_ar %}مرتفع{% else %}High{% endif %}
+                  {% elif c.risk_level == 'MEDIUM' %}{% if is_ar %}متوسط{% else %}Medium{% endif %}
+                  {% else %}{% if is_ar %}منخفض{% else %}Low{% endif %}{% endif %}
+                </span>
+              </td>
+              <td class="px-5 py-4">
+                <span class="px-2 py-1 rounded-full text-xs border border-white/15 bg-white/5 text-white/70">
+                  {{ item.evidence_count }} {% if is_ar %}دليل{% else %}evidence{% endif %}
+                </span>
+              </td>
+              <td class="px-5 py-4 font-semibold">{% if item.score %}{{ item.score }}%{% else %}—{% endif %}</td>
+              <td class="px-5 py-4 text-end">
+                <a href="{% url 'webui:control_detail' slug=org.slug control_id=c.id %}" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-card/40 hover:bg-card/70 text-xs {% if is_ar %}flex-row-reverse{% endif %}">
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path d="M21 21l-4.3-4.3"/>
+                  </svg>
+                  <span>{% if is_ar %}عرض{% else %}View{% endif %}</span>
+                </a>
+                {% if can_manage %}
+                  <a href="{% url 'webui:evidence_upload' slug=org.slug %}?control={{ c.id }}" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-teal/20 border border-teal/40 text-cyan-200 hover:bg-teal/30 text-xs {% if is_ar %}flex-row-reverse{% endif %}">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                      <path d="M12 16V4"/>
+                      <path d="M7 9l5-5 5 5"/>
+                      <path d="M5 20h14"/>
+                    </svg>
+                    <span>{% if is_ar %}رفع{% else %}Upload{% endif %}</span>
+                  </a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
