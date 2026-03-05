@@ -50,12 +50,12 @@
         {% if e.status == 'ANALYZED' %}
           <div class="text-sm text-white/70">{% if is_ar %}نتائج التحليل متاحة{% else %}Analysis results available{% endif %}</div>
         {% elif e.status == 'ANALYZING' %}
-          <div class="text-sm text-white/70">{% if is_ar %}???????? ?????????? ??????????...{% else %}AI is analyzing the file...{% endif %}</div>
+          <div class="text-sm text-white/70">{% if is_ar %}جاري تحليل الملف...{% else %}AI is analyzing the file...{% endif %}</div>
           <div class="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
             <div class="h-full w-1/2 bg-info/70 animate-pulse"></div>
           </div>
         {% elif e.status == 'EXTRACTING' or e.status == 'PROCESSING' or e.status == 'EXTRACTED' %}
-          <div class="text-sm text-white/70">{% if is_ar %}???????? ?????????????? ????????...{% else %}Extracting text...{% endif %}</div>
+          <div class="text-sm text-white/70">{% if is_ar %}جاري استخراج النص...{% else %}Extracting text...{% endif %}</div>
           <div class="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
             <div class="h-full w-1/3 bg-info/70 animate-pulse"></div>
           </div>

@@ -121,6 +121,8 @@ OPENAI_MODEL = config("OPENAI_MODEL", default="gpt-4o-mini")
 MAX_UPLOAD_SIZE = config("MAX_UPLOAD_SIZE", default=25 * 1024 * 1024, cast=int)
 AI_TEXT_MAX_CHARS = config("AI_TEXT_MAX_CHARS", default=50000, cast=int)
 EVIDENCE_ALLOWED_EXTENSIONS = {"pdf", "docx", "png", "jpg", "jpeg"}
+TESSERACT_CMD = config("TESSERACT_CMD", default="")
+TESSERACT_LANG = config("TESSERACT_LANG", default="eng")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (

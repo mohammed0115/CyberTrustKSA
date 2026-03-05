@@ -65,9 +65,24 @@ def extract_text_docx(path: str) -> str:
 
 
 def extract_text_image(path: str) -> str:
-    # Placeholder: OCR not enabled in MVP.
-    logger.warning("OCR extraction not implemented for image: %s", path)
-    return ""
+    try:
+        from PIL import Image
+        import pytesseract
+    except Exception:
+        logger.warning("OCR dependencies are not installed.")
+        return ""
+
+    tesseract_cmd = getattr(settings, "TESSERACT_CMD", "")
+    if tesseract_cmd:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+
+    lang = getattr(settings, "TESSERACT_LANG", "eng")
+    try:
+        text = pytesseract.image_to_string(Image.open(path), lang=lang)
+    except Exception as exc:
+        logger.warning("OCR failed: %s", exc)
+        return ""
+    return _truncate_text(_normalize_text(text))
 
 
 def extract_text_from_pdf(path: str) -> str:

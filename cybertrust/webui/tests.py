@@ -25,11 +25,11 @@ class WebuiEvidenceTests(TestCase):
         Membership.objects.create(user=self.admin_user, organization=self.org, role=Membership.ROLE_ADMIN)
         Membership.objects.create(user=self.viewer_user, organization=self.org, role=Membership.ROLE_VIEWER)
 
-        self.category = ControlCategory.objects.create(name_ar="?????", name_en="Category", order=1)
+        self.category = ControlCategory.objects.create(name_ar="الفئة", name_en="Category", order=1)
         self.control = Control.objects.create(
             category=self.category,
             code="NCA-ECC-1.1",
-            title_ar="????",
+            title_ar="ضابط",
             title_en="Control",
             risk_level=Control.RISK_LOW,
             required_evidence="Policy",

@@ -353,27 +353,27 @@ def dashboard(request: HttpRequest, slug: str) -> HttpResponse:
 
     kpis = [
         {
-            "label_ar": "???? ????????",
+            "label_ar": "درجة الامتثال",
             "label_en": "Compliance Score",
             "value": f"{kpi_data['overall_score']}%",
             "icon": "shield",
         },
         {
-            "label_ar": "??????? ????????",
+            "label_ar": "الضوابط المكتملة",
             "label_en": "Controls Completed",
             "value": f"{kpi_data['controls_completed']}/{total_controls}",
             "icon": "file",
         },
         {
-            "label_ar": "???? ??? ????????",
+            "label_ar": "الأدلة المعلقة",
             "label_en": "Evidence Pending",
             "value": str(kpi_data["evidence_pending"]),
             "icon": "alert",
         },
         {
-            "label_ar": "????? ???????",
+            "label_ar": "مستوى المخاطر",
             "label_en": "Risk Level",
-            "value": "?????" if kpi_data["risk_level"] == "LOW" else "?????" if kpi_data["risk_level"] == "MEDIUM" else "?????",
+            "value": "منخفض" if kpi_data["risk_level"] == "LOW" else "متوسط" if kpi_data["risk_level"] == "MEDIUM" else "مرتفع",
             "icon": "trend",
         },
     ]
@@ -573,11 +573,11 @@ def evidence_upload(request: HttpRequest, slug: str) -> HttpResponse:
             return redirect("webui:evidence_detail", slug=org.slug, evidence_id=evidence.id)
 
     steps = [
-        {"name_ar": "??? ?????", "name_en": "Upload", "status": "completed"},
-        {"name_ar": "??????? ????", "name_en": "Extract", "status": "active"},
-        {"name_ar": "?????? ???????", "name_en": "Match", "status": "queued"},
-        {"name_ar": "????? AI", "name_en": "Analyze", "status": "queued"},
-        {"name_ar": "???????", "name_en": "Report", "status": "queued"},
+        {"name_ar": "رفع الملف", "name_en": "Upload", "status": "completed"},
+        {"name_ar": "استخراج النص", "name_en": "Extract", "status": "active"},
+        {"name_ar": "ربط الضوابط", "name_en": "Match", "status": "queued"},
+        {"name_ar": "تحليل AI", "name_en": "Analyze", "status": "queued"},
+        {"name_ar": "التقرير", "name_en": "Report", "status": "queued"},
     ]
 
     return render(

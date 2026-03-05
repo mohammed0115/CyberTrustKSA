@@ -85,18 +85,18 @@
       <div class="flex items-center justify-between">
         <div>
           <div class="text-xs text-white/60">{{ r.evidence.filename }}</div>
-          <div class="font-semibold">{% if is_ar %}????? AI{% else %}AI Result{% endif %}</div>
+          <div class="font-semibold">{% if is_ar %}نتيجة AI{% else %}AI Result{% endif %}</div>
         </div>
         <span class="px-2 py-1 rounded-full text-xs border border-teal/40 bg-teal/10 text-cyan-200">{{ r.status }}</span>
       </div>
 
       <div class="mt-4 grid grid-cols-2 gap-4">
         <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div class="text-xs text-white/60">{% if is_ar %}??????{% else %}Score{% endif %}</div>
+          <div class="text-xs text-white/60">{% if is_ar %}الدرجة{% else %}Score{% endif %}</div>
           <div class="mt-2 text-2xl font-semibold">{{ r.score }}%</div>
         </div>
         <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div class="text-xs text-white/60">{% if is_ar %}?????{% else %}Confidence{% endif %}</div>
+          <div class="text-xs text-white/60">{% if is_ar %}الثقة{% else %}Confidence{% endif %}</div>
           <div class="mt-2 text-2xl font-semibold">{{ r.confidence }}%</div>
         </div>
       </div>
@@ -106,7 +106,7 @@
       </div>
 
       <div class="mt-4">
-        <div class="text-xs text-white/60">{% if is_ar %}?????? ???????{% else %}Missing Points{% endif %}</div>
+        <div class="text-xs text-white/60">{% if is_ar %}النقاط الناقصة{% else %}Missing Points{% endif %}</div>
         <ul class="mt-2 text-sm text-white/70 space-y-1">
           {% for mp in r.missing_points %}
             <li class="flex gap-2"><span class="text-emerald-300">?</span><span>{{ mp }}</span></li>
@@ -117,7 +117,7 @@
       </div>
 
       <div class="mt-4">
-        <div class="text-xs text-white/60">{% if is_ar %}????????{% else %}Recommendations{% endif %}</div>
+        <div class="text-xs text-white/60">{% if is_ar %}التوصيات{% else %}Recommendations{% endif %}</div>
         <ul class="mt-2 text-sm text-white/70 space-y-1">
           {% for rec in r.recommendations %}
             <li class="flex gap-2"><span class="text-cyan-300">?</span><span>{{ rec }}</span></li>
@@ -128,7 +128,7 @@
       </div>
 
       <div class="mt-4">
-        <div class="text-xs text-white/60">{% if is_ar %}??????????{% else %}Citations{% endif %}</div>
+        <div class="text-xs text-white/60">{% if is_ar %}الاقتباسات{% else %}Citations{% endif %}</div>
         <ul class="mt-2 text-sm text-white/70 space-y-1">
           {% for c in r.citations %}
             <li class="flex gap-2"><span class="text-white/40">?</span><span>{{ c.quote }}{% if c.page %} (p{{ c.page }}){% endif %}</span></li>
@@ -140,7 +140,7 @@
     </div>
   {% empty %}
     <div class="rounded-3xl border border-white/10 bg-card/40 p-6 text-white/60">
-      {% if is_ar %}?? ???? ????? ???{% else %}No analysis results yet{% endif %}
+      {% if is_ar %}لا توجد نتائج بعد{% else %}No analysis results yet{% endif %}
     </div>
   {% endfor %}
 </div>
