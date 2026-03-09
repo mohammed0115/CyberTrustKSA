@@ -105,6 +105,9 @@ If `.env` does not exist, the script writes a working starter file. Review these
 DJANGO_SETTINGS_MODULE=cybertrust.config.settings.prod
 SECRET_KEY=replace-with-a-long-random-secret
 DEBUG=False
+SERVER_IP=76.13.143.149
+PUBLIC_HOST=76.13.143.149
+PUBLIC_PORT=8000
 ALLOWED_HOSTS=76.13.143.149,localhost,127.0.0.1
 STATIC_ROOT=/path/to/CyberTrustKSA/staticfiles
 MEDIA_ROOT=/path/to/CyberTrustKSA/media
@@ -127,8 +130,34 @@ Values you must verify:
 
 - `OPENAI_API_KEY`: required for AI analysis features
 - `SECRET_KEY`: generated automatically for a new `.env`, but keep it private
+- `SERVER_IP`, `PUBLIC_HOST`, and `PUBLIC_PORT`: keep these aligned with the public address you actually open in the browser
 - `ALLOWED_HOSTS`: keep `76.13.143.149` unless you move to a different host or add a domain
 - `STATIC_ROOT` and `MEDIA_ROOT`: leave these pointing at the project unless you intentionally move storage
+
+### Troubleshooting 400 Bad Request
+
+If you open `http://76.13.143.149:8000/` and Django shows `Bad Request (400)`, the running process usually has the wrong host settings loaded.
+
+Check `.env` and make sure these are present:
+
+```env
+SERVER_IP=76.13.143.149
+PUBLIC_HOST=76.13.143.149
+PUBLIC_PORT=8000
+ALLOWED_HOSTS=76.13.143.149,localhost,127.0.0.1
+```
+
+Then restart gunicorn and nginx:
+
+```bash
+sudo systemctl restart cybertrust-gunicorn nginx
+```
+
+If it still fails, inspect the gunicorn log for `DisallowedHost`:
+
+```bash
+sudo journalctl -u cybertrust-gunicorn -n 100 --no-pager
+```
 
 ### Service Management
 
