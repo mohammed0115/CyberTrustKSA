@@ -1,10 +1,11 @@
 from pathlib import Path
 
 from decouple import Csv, config
-from pathlib import Path
 #BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 SECRET_KEY = config("SECRET_KEY", default="unsafe-secret-key-change-me")
 DEBUG = config("DEBUG", default=False, cast=bool)
@@ -163,7 +164,7 @@ LOGGING = {
         },
         "ai_engine_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "ai_engine.log"),
+            "filename": str(LOG_DIR / "ai_engine.log"),
             "maxBytes": 10485760,  # 10MB
             "backupCount": 5,
             "formatter": "verbose",
@@ -171,7 +172,7 @@ LOGGING = {
         },
         "chatbot_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "chatbot.log"),
+            "filename": str(LOG_DIR / "chatbot.log"),
             "maxBytes": 5242880,  # 5MB
             "backupCount": 3,
             "formatter": "verbose",
